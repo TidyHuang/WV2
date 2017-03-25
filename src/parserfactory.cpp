@@ -60,30 +60,65 @@ namespace
 
         U16 nFib = wordDocument->readU16();
         wvlog << "nFib=" << nFib << std::endl;
+
+        wordDocument->seek(28, SEEK_CUR);
+
+        //U16 nCsw = wordDocument->readU16();
+
+        /*  move FibRgW97 */
+        wordDocument->seek(30, SEEK_CUR);
+
+        U16 nCslw = wordDocument->readU16();
+
+        /*  fibRgLw */
+        wordDocument->seek(nCslw * 4, SEEK_CUR);
+
+        U16 ncbRgFcLcb = wordDocument->readU16();
+
+        wordDocument->seek(ncbRgFcLcb * 8, SEEK_CUR);
+
+        U16 ncswNew = wordDocument->readU16();
+        U16 nfibnew = 0;
+        if (ncswNew) {
+            nfibnew = wordDocument->readU16();
+            if (nfibnew != Word2003 || nfibnew != Word2000 || nfibnew != Word2002 || nfibnew != Word2007) {
+                delete wordDocument;
+                delete storage;
+               }
+        } else {
+            nFib = Word8nFib;
+        }
+
         wordDocument->seek( 0 );  // rewind the stream
 
-        if ( nFib < 101 ) {
-            std::cerr << "+++ Don't know how to handle nFib=" << nFib << std::endl;
+        if (nfibnew) {
             delete wordDocument;
             delete storage;
             return 0;
-        }
-        else if ( nFib == 101 ) {
-            wvlog << "Word 6 document found" << std::endl;
-            return new Parser95( storage, wordDocument );
-        }
-        else if ( nFib == 103 || nFib == 104 ) {
-            wvlog << "Word 7 (aka Word 95) document found" << std::endl;
-            return new Parser95( storage, wordDocument );
-        }
-        else if ( nFib == Word8nFib ) {  // Word8nFib == 193
-            wvlog << "Word 8 (aka Word 97) document found" << std::endl;
-            return new Parser97( storage, wordDocument );
-        }
-        else {
-            wvlog << "A document newer than Word 8 found (nFib=" << nFib
-                  << "), trying with the Word 8 parser" << std::endl;
-            return new Parser97( storage, wordDocument );
+        } else  {
+            if ( nFib < 101 ) {
+                std::cerr << "+++ Don't know how to handle nFib=" << nFib << std::endl;
+                delete wordDocument;
+                delete storage;
+                return 0;
+            }
+            else if ( nFib == 101 ) {
+                wvlog << "Word 6 document found" << std::endl;
+                return new Parser95( storage, wordDocument );
+            }
+            else if ( nFib == 103 || nFib == 104 ) {
+                wvlog << "Word 7 (aka Word 95) document found" << std::endl;
+                return new Parser95( storage, wordDocument );
+            }
+            else if ( nFib == Word8nFib ) {  // Word8nFib == 193
+                wvlog << "Word 8 (aka Word 97) document found" << std::endl;
+                return new Parser97( storage, wordDocument );
+            }
+            else {
+                wvlog << "A document newer than Word 8 found (nFib=" << nFib
+                    << "), trying with the Word 8 parser" << std::endl;
+                return new Parser97( storage, wordDocument );
+            }
         }
     }
 }
