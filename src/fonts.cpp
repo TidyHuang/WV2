@@ -47,8 +47,16 @@ FontCollection::FontCollection( AbstractOLEStreamReader* reader, const Word97::F
         if ( extraData != 0 )
             wvlog << "Huh?? Found STTBF extra data within the STTBF of FFNs" << std::endl;
 
-        for ( int i = 0; i < count; ++i )
-            m_fonts.push_back( new Word97::FFN( reader, Word97::FFN::Word97, false ) );
+        for ( int i = 0; i < count; ++i ) {
+            Word97::FFN* font = new Word97::FFN();
+            if (font) {
+                if (font->read(reader, Word97::FFN::Word97, false) == true) {
+                    m_fonts.push_back(font);
+                } else {
+                    delete font;
+                }
+            }
+        }
     }
 
     if ( reader->tell() - fib.fcSttbfffn != fib.lcbSttbfffn )

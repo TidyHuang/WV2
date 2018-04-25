@@ -48,6 +48,7 @@ FFN::FFN(AbstractOLEStreamReader *stream, Version version, bool preservePos) {
 bool FFN::read(AbstractOLEStreamReader *stream, Version version, bool preservePos) {
 
     U8 shifterU8;
+    bool ret = true;
 
     if(preservePos)
         stream->push();
@@ -83,9 +84,13 @@ bool FFN::read(AbstractOLEStreamReader *stream, Version version, bool preservePo
             string[ i ] = stream->readU16();
         if ( ixchSzAlt == 0 )
             xszFfn = UString( reinterpret_cast<const wvWare::UChar *>( string ), remainingSize - 1 );
-        else {
+        else if (ixchSzAlt > 1 && remainingSize > 1 + ixchSzAlt) {
             xszFfn = UString( reinterpret_cast<const wvWare::UChar *>( string ), ixchSzAlt - 1 );
             xszFfnAlt = UString( reinterpret_cast<const wvWare::UChar *>( &string[ ixchSzAlt ] ), remainingSize - 1 - ixchSzAlt );
+        } else {
+            xszFfn = "";
+            xszFfnAlt = "";
+            ret = false;
         }
         delete [] string;
     }
@@ -104,7 +109,8 @@ bool FFN::read(AbstractOLEStreamReader *stream, Version version, bool preservePo
 
     if(preservePos)
         stream->pop();
-    return true;
+
+    return ret;
 }
 
 void FFN::clear() {

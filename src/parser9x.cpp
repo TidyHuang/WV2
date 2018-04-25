@@ -269,6 +269,9 @@ void Parser9x::init()
         m_lists = new ListInfoProvider( m_table, m_fib, &m_properties->styleSheet() );
 
     m_fonts = new FontCollection( m_table, m_fib );
+    if (!m_fonts) {
+        m_okay = false;
+    }
     m_fields = new Fields( m_table, m_fib );
 
     if ( m_fib.ccpFtn != 0 )
